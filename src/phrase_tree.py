@@ -28,8 +28,6 @@ class PhraseTree(object):
         self.leaf = leaf            # word at bottom level else None
         
         self._str = None
-        self._width = None   # used for evaluation only (excludes puncs)
-        self.leftidx = None  # used for evaluation only (excludes puncs)
 
 
     def __str__(self):
