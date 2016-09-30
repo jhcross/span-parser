@@ -36,3 +36,12 @@ Argument | Description | Default
 --unk-param | Parameter z for random UNKing | 0.8375
 --alpha | Softmax weight for exploration | 1.0
 --beta | Oracle action override probability | 0.0
+
+
+#### Test Evaluation
+
+There is also a facility to directly evaluate a model agaist a reference corpus, by supplying the `--test` argument:
+
+```
+python src/main.py --train data/02-21.10way.clean --test data/23.auto.clean --vocab data/vocab.json --model data/my_model
+```
