@@ -8,7 +8,7 @@
 
 #### Vocabulary Files
 
-Vocabulary may be loaded every time from a training tree file, or it may be stored (separately from a trained model) in a JSON, which is much faster and recommended. To learn the vocabulary from a file with training trees and write a JSON file, use a command such as the following:
+Vocabulary may be loaded every time from a training tree file, or it may be stored (separately from a trained model) in a JSON file, which is much faster and recommended. To learn the vocabulary from a file with training trees and write a JSON file, use a command such as the following:
 
 ```
 python src/main.py --train data/02-21.10way.clean --write-vocab data/vocab.json

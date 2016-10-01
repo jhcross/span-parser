@@ -475,7 +475,7 @@ class Network(object):
         print('Dropout rate: {}'.format(droprate))
         print('Parameters initialized in [-0.01, 0.01]')
         print('Random UNKing parameter z = {}'.format(unk_param))
-        print('Exloration: alpha={} beta={}'.format(alpha, beta))
+        print('Exploration: alpha={} beta={}'.format(alpha, beta))
 
         training_data = fm.gold_data_from_file(train_data_file)
         num_batches = -(-len(training_data) // batch_size) 
