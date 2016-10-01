@@ -310,7 +310,7 @@ class Parser(object):
                     ).npvalue()
 
                     # sample from distribution
-                    exp = np.exp(scores) ** alpha
+                    exp = np.exp(scores * alpha)
                     softmax = exp / (exp.sum())
                     r = np.random.random()
 
