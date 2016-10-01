@@ -21,7 +21,6 @@ class Parser(object):
         self.n = n
         self.i = 0
         self.stack = []
-        #self.spans = []
 
 
     def can_shift(self):
@@ -86,7 +85,7 @@ class Parser(object):
             (pre-s1-span, s1-span, s0-span, post-s0-span)
         Note features use 1-based indexing:
             ... a span of (1, 1) means the first word of sentence
-            ... (x, x-1) mean no span
+            ... (x, x-1) means no span
         """
         lefts = []
         rights = []
@@ -165,6 +164,7 @@ class Parser(object):
         """
         Returns correct structural action in current (arbitrary) state, 
             given gold tree.
+            Deterministic (prefer combine).
         """
         if not self.can_shift():
             return 'comb'
@@ -196,7 +196,6 @@ class Parser(object):
 
         for step in range(2 * n - 1):
 
-            # structural action
             if state.can_combine():
                 (left0, right0, _) = state.stack[-1]
                 (left1, _, _) = state.stack[-2]
@@ -211,7 +210,6 @@ class Parser(object):
                 result.append('sh')
                 state.shift()
 
-            # label action
             (left0, right0, _) = state.stack[-1]
             labels = tree.span_labels(left0, right0)[::-1]
             if len(labels) == 0:
@@ -237,7 +235,6 @@ class Parser(object):
 
         for step in range(2 * n - 1):
 
-            # structural action
             if not state.can_combine():
                 action = 'sh'
             elif not state.can_shift():
@@ -249,7 +246,6 @@ class Parser(object):
             state.take_action(action)
 
 
-            # label action
             action = state.l_oracle(tree)
             features = state.l_features()
             l_features.append((features, action))
@@ -284,7 +280,6 @@ class Parser(object):
 
         for step in xrange(2 * n - 1):
 
-            # structural action
             features = state.s_features()
             if not state.can_combine():
                 action = 'sh'
@@ -322,7 +317,6 @@ class Parser(object):
             struct_data[features] = fm.s_action_index(correct_action)
             state.take_action(action)
 
-            #label action
             features = state.l_features()
             correct_action = state.l_oracle(tree)
             label_data[features] = fm.l_action_index(correct_action)
@@ -375,7 +369,6 @@ class Parser(object):
 
         for step in xrange(2 * n - 1):
 
-            # structural action
             if not state.can_combine():
                 action = 'sh'
             elif not state.can_shift():
