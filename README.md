@@ -54,10 +54,9 @@ If you use this software for research, we would appreciate a citation to our pap
 
 ```
     @inproceedings{cross2016span,
-      title={Span-Based Constituency Parsing with a Structure-Label System and
-Provably Optimal Dynamic Oracles},
+      title={Span-Based Constituency Parsing with a Structure-Label System and Provably Optimal Dynamic Oracles},
       author={Cross, James and Huang, Liang},
-      booktitle={Empirical Methods in Natural Language Processing (EMNLP)},
+      journal={Empirical Methods in Natural Language Processing (EMNLP)},
       year={2016}
 }
 ```
