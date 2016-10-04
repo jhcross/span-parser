@@ -1,5 +1,7 @@
 # Span-Based Constituency Parser
 
+This is an implementation of the span-based natural language constituency parser described in the paper [Span-Based Constituency Parsing with a Structure-Label System and Provably Optimal Dynamic Oracles](http://people.oregonstate.edu/~crossj/emnlp_2016.pdf), which will appear in *EMNLP* (2016).
+
 #### Required Dependencies
 
  * Python 2.7
@@ -44,4 +46,18 @@ There is also a facility to directly evaluate a model agaist a reference corpus,
 
 ```
 python src/main.py --test data/23.auto.clean --vocab data/vocab.json --model data/my_model
+```
+
+#### Citation
+
+If you use this software for research, we would appreciate a citation to our paper:
+
+```
+    @inproceedings{cross2016span,
+      title={Span-Based Constituency Parsing with a Structure-Label System and
+Provably Optimal Dynamic Oracles},
+      author={Cross, James and Huang, Liang},
+      booktitle={Empirical Methods in Natural Language Processing (EMNLP)},
+      year={2016}
+}
 ```
