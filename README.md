@@ -58,5 +58,5 @@ If you use this software for research, we would appreciate a citation to our pap
       author={Cross, James and Huang, Liang},
       journal={Empirical Methods in Natural Language Processing (EMNLP)},
       year={2016}
-}
+    }
 ```
