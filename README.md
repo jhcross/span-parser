@@ -53,10 +53,10 @@ python src/main.py --test data/23.auto.clean --vocab data/vocab.json --model dat
 If you use this software for research, we would appreciate a citation to our paper:
 
 ```
-    @inproceedings{cross2016span,
-      title={Span-Based Constituency Parsing with a Structure-Label System and Provably Optimal Dynamic Oracles},
-      author={Cross, James and Huang, Liang},
-      journal={Empirical Methods in Natural Language Processing (EMNLP)},
-      year={2016}
-    }
+@inproceedings{cross2016span,
+  title={Span-Based Constituency Parsing with a Structure-Label System and Provably Optimal Dynamic Oracles},
+  author={Cross, James and Huang, Liang},
+  journal={Empirical Methods in Natural Language Processing (EMNLP)},
+  year={2016}
+}
 ```
