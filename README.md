@@ -6,7 +6,9 @@ This is an implementation of the span-based natural language constituency parser
 
  * Python 2.7
  * NumPy
- * [PyCNN](https://github.com/clab/cnn/blob/master/INSTALL.md)
+ * [PyCNN (v1)](https://github.com/clab/cnn-v1/blob/master/INSTALL.md)
+
+
 
 #### Vocabulary Files
 
