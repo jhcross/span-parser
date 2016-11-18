@@ -81,6 +81,7 @@ class Parser(object):
 
     def s_features(self):
         """
+        not really understand what this feature is?
         Features for predicting structural action (shift, combine):
             (pre-s1-span, s1-span, s0-span, post-s0-span)
         Note features use 1-based indexing:
