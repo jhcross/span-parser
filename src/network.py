@@ -31,7 +31,7 @@ class LSTM(object):
 
         self.W_i = model.add_parameters(
             (output_dims, input_dims + output_dims),
-            init=dynet.UniformInitializer(0.1),
+            init=dynet.UniformInitializer(0.01),
         )
         self.b_i = model.add_parameters(
             (output_dims,),
@@ -39,7 +39,7 @@ class LSTM(object):
         )
         self.W_f = model.add_parameters(
             (output_dims, input_dims + output_dims),
-            init=dynet.UniformInitializer(0.1),
+            init=dynet.UniformInitializer(0.01),
         )
         self.b_f = model.add_parameters(
             (output_dims,),
@@ -47,7 +47,7 @@ class LSTM(object):
         )
         self.W_c = model.add_parameters(
             (output_dims, input_dims + output_dims),
-            init=dynet.UniformInitializer(0.1),
+            init=dynet.UniformInitializer(0.01),
         )
         self.b_c = model.add_parameters(
             (output_dims,),
@@ -55,7 +55,7 @@ class LSTM(object):
         )
         self.W_o = model.add_parameters(
             (output_dims, input_dims + output_dims),
-            init=dynet.UniformInitializer(0.1),
+            init=dynet.UniformInitializer(0.01),
         )
         self.b_o = model.add_parameters(
             (output_dims,),
@@ -175,7 +175,7 @@ class Network(object):
 
         self.struct_hidden_W = self.model.add_parameters(
             (hidden_units, 4 * struct_spans * lstm_units),
-            dynet.UniformInitializer(0.1),
+            dynet.UniformInitializer(0.01),
         )
         self.struct_hidden_b = self.model.add_parameters(
             (hidden_units,),
@@ -192,7 +192,7 @@ class Network(object):
 
         self.label_hidden_W = self.model.add_parameters(
             (hidden_units, 4 * label_spans * lstm_units),
-            dynet.UniformInitializer(0.1),
+            dynet.UniformInitializer(0.01),
         )
         self.label_hidden_b = self.model.add_parameters(
             (hidden_units,),
