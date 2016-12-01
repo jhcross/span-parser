@@ -6,7 +6,7 @@ This is an implementation of the span-based natural language constituency parser
 
  * Python 2.7
  * NumPy
- * [PyCNN (v1)](https://github.com/clab/cnn-v1/blob/master/INSTALL.md)
+ * [DyNet](http://dynet.readthedocs.io/en/latest/python.html)
 
 
 
@@ -30,6 +30,9 @@ The following table provides an overview of additional training options:
 
 Argument | Description | Default
 --- | --- | ---
+--dynet-mem | Memory (MB) to allocate for DyNet | 2000
+--dynet-l2  | L2 regularization factor | 0
+--dynet-seed | Seed for random parameter initialization | random
 --word-dims | Word embedding dimensions | 50
 --tag-dims  | POS embedding dimensions  | 20
 --lstm-units | LSTM units (per direction, for each of 2 layers) | 200
@@ -40,6 +43,7 @@ Argument | Description | Default
 --unk-param | Parameter z for random UNKing | 0.8375
 --alpha | Softmax weight for exploration | 1.0
 --beta | Oracle action override probability | 0.0
+--np-seed | Seed for shuffling and softmax sampling | random
 
 
 #### Test Evaluation
