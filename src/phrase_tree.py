@@ -316,11 +316,9 @@ class FScore(object):
 
 
     def __add__(self, other):
-        return FScore(
-            self.correct + other.correct, 
-            self.predcount + other.predcount, 
-            self.goldcount + other.goldcount,
-        )
+        return Fmeasure(self.correct + other.correct, 
+                        self.predcount + other.predcount, 
+                        self.goldcount + other.goldcount)
 
 
     def __cmp__(self, other):

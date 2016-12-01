@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import division
 
 import numpy as np
-import pycnn
+import dynet
 from collections import defaultdict
 
 from phrase_tree import PhraseTree, FScore
@@ -262,7 +262,7 @@ class Parser(object):
             Follow softmax distribution for structural data.
         """
 
-        pycnn.renew_cg()
+        dynet.renew_cg()
         network.prep_params()
 
         struct_data = {}
@@ -357,7 +357,7 @@ class Parser(object):
     @staticmethod
     def parse(sentence, fm, network):
 
-        pycnn.renew_cg()
+        dynet.renew_cg()
         network.prep_params()
 
         n = len(sentence)

@@ -9,13 +9,12 @@ import time
 import random
 import sys
 
-import pycnn
+import dynet
 import numpy as np
 
 from phrase_tree import PhraseTree, FScore
 from features import FeatureMapper
 from parser import Parser
-
 
 class LSTM(object):
     """
@@ -30,72 +29,46 @@ class LSTM(object):
         self.output_dims = output_dims
         self.model = model
 
-        LSTM.number += 1
-        self.name = 'lstm_{}'.format(LSTM.number)
-
-        self.model.add_parameters(
-            '{}_W_i'.format(self.name),
+        self.W_i = model.add_parameters(
             (output_dims, input_dims + output_dims),
+            init=dynet.UniformInitializer(0.1),
         )
-        self.model.add_parameters(
-            '{}_b_i'.format(self.name),
-            output_dims,
+        self.b_i = model.add_parameters(
+            (output_dims,),
+            init=dynet.ConstInitializer(0),
         )
-
-        self.model.add_parameters(
-            '{}_W_f'.format(self.name),
+        self.W_f = model.add_parameters(
             (output_dims, input_dims + output_dims),
+            init=dynet.UniformInitializer(0.1),
         )
-        self.model.add_parameters(
-            '{}_b_f'.format(self.name),
-            output_dims,
+        self.b_f = model.add_parameters(
+            (output_dims,),
+            init=dynet.ConstInitializer(0),
         )
-
-        self.model.add_parameters(
-            '{}_W_c'.format(self.name),
+        self.W_c = model.add_parameters(
             (output_dims, input_dims + output_dims),
+            init=dynet.UniformInitializer(0.1),
         )
-        self.model.add_parameters(
-            '{}_b_c'.format(self.name),
-            output_dims,
+        self.b_c = model.add_parameters(
+            (output_dims,),
+            init=dynet.ConstInitializer(0),
         )
-
-        self.model.add_parameters(
-            '{}_W_o'.format(self.name),
+        self.W_o = model.add_parameters(
             (output_dims, input_dims + output_dims),
+            init=dynet.UniformInitializer(0.1),
         )
-        self.model.add_parameters(
-            '{}_b_o'.format(self.name),
-            output_dims,
+        self.b_o = model.add_parameters(
+            (output_dims,),
+            init=dynet.ConstInitializer(0),
+        )
+        self.c0 = model.add_parameters(
+            (output_dims,),
+            init=dynet.ConstInitializer(0),
         )
 
-
-        self.model.add_parameters(
-            '{}_c0'.format(self.name),
-            output_dims,
-        )
-
-        self.W_i = self.model['{}_W_i'.format(self.name)]
-        self.b_i = self.model['{}_b_i'.format(self.name)]
-        self.W_f = self.model['{}_W_f'.format(self.name)]
-        self.b_f = self.model['{}_b_f'.format(self.name)]
-        self.W_c = self.model['{}_W_c'.format(self.name)]
-        self.b_c = self.model['{}_b_c'.format(self.name)]
-        self.W_o = self.model['{}_W_o'.format(self.name)]
-        self.b_o = self.model['{}_b_o'.format(self.name)]
-        self.c0 = self.model['{}_c0'.format(self.name)]
-
-        self.W_i.load_array(np.random.uniform(-0.01, 0.01, self.W_i.shape()))
-        self.b_i.load_array(np.zeros(self.b_i.shape()))
-        self.W_f.load_array(np.random.uniform(-0.01, 0.01, self.W_f.shape()))
-        self.b_f.load_array(np.zeros(self.b_f.shape()))
-        self.W_c.load_array(np.random.uniform(-0.01, 0.01, self.W_c.shape()))
-        self.b_c.load_array(np.zeros(self.b_c.shape()))
-        self.W_o.load_array(np.random.uniform(-0.01, 0.01, self.W_o.shape()))
-        self.b_o.load_array(np.zeros(self.b_o.shape()))
-
-        self.c0.load_array(np.zeros(self.c0.shape()))
-
+        self.W_params = [self.W_i, self.W_f, self.W_c, self.W_o]
+        self.b_params = [self.b_i, self.b_f, self.b_c, self.b_o]
+        self.params = self.W_params + self.b_params + [self.c0]
     
     class State(object):
 
@@ -104,35 +77,35 @@ class LSTM(object):
 
             self.outputs = []
 
-            self.c = pycnn.parameter(self.lstm.c0)
-            self.h = pycnn.tanh(self.c)
+            self.c = dynet.parameter(self.lstm.c0)
+            self.h = dynet.tanh(self.c)
 
-            self.W_i = pycnn.parameter(self.lstm.W_i)
-            self.b_i = pycnn.parameter(self.lstm.b_i)
+            self.W_i = dynet.parameter(self.lstm.W_i)
+            self.b_i = dynet.parameter(self.lstm.b_i)
 
-            self.W_f = pycnn.parameter(self.lstm.W_f)
-            self.b_f = pycnn.parameter(self.lstm.b_f)
+            self.W_f = dynet.parameter(self.lstm.W_f)
+            self.b_f = dynet.parameter(self.lstm.b_f)
 
-            self.W_c = pycnn.parameter(self.lstm.W_c)
-            self.b_c = pycnn.parameter(self.lstm.b_c)
+            self.W_c = dynet.parameter(self.lstm.W_c)
+            self.b_c = dynet.parameter(self.lstm.b_c)
 
-            self.W_o = pycnn.parameter(self.lstm.W_o)
-            self.b_o = pycnn.parameter(self.lstm.b_o)
+            self.W_o = dynet.parameter(self.lstm.W_o)
+            self.b_o = dynet.parameter(self.lstm.b_o)
 
 
         def add_input(self, input_vec):
             """
             Note that this function updates the existing State object!
             """
-            x = pycnn.concatenate([input_vec, self.h])
+            x = dynet.concatenate([input_vec, self.h])
 
-            i = pycnn.logistic(self.W_i * x + self.b_i)
-            f = pycnn.logistic(self.W_f * x + self.b_f)
-            g = pycnn.tanh(self.W_c * x + self.b_c)
-            o = pycnn.logistic(self.W_o * x + self.b_o)
+            i = dynet.logistic(self.W_i * x + self.b_i)
+            f = dynet.logistic(self.W_f * x + self.b_f)
+            g = dynet.tanh(self.W_c * x + self.b_c)
+            o = dynet.logistic(self.W_o * x + self.b_o)
 
-            c = pycnn.cwise_multiply(f, self.c) + pycnn.cwise_multiply(i, g)
-            h = pycnn.cwise_multiply(o, pycnn.tanh(c))
+            c = dynet.cwise_multiply(f, self.c) + dynet.cwise_multiply(i, g)
+            h = dynet.cwise_multiply(o, dynet.tanh(c))
 
             self.c = c
             self.h = h
@@ -147,6 +120,7 @@ class LSTM(object):
 
     def initial_state(self):
         return LSTM.State(self)
+
 
 
 
@@ -178,16 +152,19 @@ class Network(object):
 
         self.droprate = droprate
 
-        self.model = pycnn.Model()
+        self.model = dynet.Model()
 
-        self.trainer = pycnn.AdadeltaTrainer(self.model, lam=0, eps=1e-7, rho=0.99)
+        self.trainer = dynet.AdadeltaTrainer(self.model, eps=1e-7, rho=0.99)
         random.seed(1)
 
-        self.activation = pycnn.rectify
+        self.activation = dynet.rectify
 
-
-        self.model.add_lookup_parameters('word-embed', (word_count, word_dims))
-        self.model.add_lookup_parameters('tag-embed', (tag_count, tag_dims))
+        self.word_embed = self.model.add_lookup_parameters(
+            (word_count, word_dims),
+        )
+        self.tag_embed = self.model.add_lookup_parameters(
+            (tag_count, tag_dims),
+        )
 
         self.fwd_lstm1 = LSTM(word_dims + tag_dims, lstm_units, self.model)
         self.back_lstm1 = LSTM(word_dims + tag_dims, lstm_units, self.model)
@@ -195,83 +172,65 @@ class Network(object):
         self.fwd_lstm2 = LSTM(2 * lstm_units, lstm_units, self.model)
         self.back_lstm2 = LSTM(2 * lstm_units, lstm_units, self.model)
 
-        self.model.add_parameters(
-            'struct-hidden-W',
+
+        self.struct_hidden_W = self.model.add_parameters(
             (hidden_units, 4 * struct_spans * lstm_units),
+            dynet.UniformInitializer(0.1),
         )
-        self.model.add_parameters('struct-hidden-b', hidden_units)
+        self.struct_hidden_b = self.model.add_parameters(
+            (hidden_units,),
+            dynet.ConstInitializer(0),
+        )
+        self.struct_output_W = self.model.add_parameters(
+            (struct_out, hidden_units),
+            dynet.ConstInitializer(0),
+        )
+        self.struct_output_b = self.model.add_parameters(
+            (struct_out,),
+            dynet.ConstInitializer(0),
+        )
 
-        self.model.add_parameters('struct-out-W', (struct_out, hidden_units))
-        self.model.add_parameters('struct-out-b', struct_out)
-
-
-        self.model.add_parameters(
-            'label-hidden-W',
+        self.label_hidden_W = self.model.add_parameters(
             (hidden_units, 4 * label_spans * lstm_units),
+            dynet.UniformInitializer(0.1),
         )
-        self.model.add_parameters('label-hidden-b', hidden_units)
-
-        self.model.add_parameters('label-out-W', (label_out, hidden_units))
-        self.model.add_parameters('label-out-b', label_out)
+        self.label_hidden_b = self.model.add_parameters(
+            (hidden_units,),
+            dynet.ConstInitializer(0),
+        )
+        self.label_output_W = self.model.add_parameters(
+            (label_out, hidden_units),
+            dynet.ConstInitializer(0),
+        )
+        self.label_output_b = self.model.add_parameters(
+            (label_out,),
+            dynet.ConstInitializer(0),
+        )
 
 
     def init_params(self):
 
-        self.model['word-embed'].init_from_array(
-            np.random.uniform(-0.01, 0.01, self.model['word-embed'].shape()),
+        self.word_embed.init_from_array(
+            np.random.uniform(-0.01, 0.01, self.word_embed.shape()),
         )
-        self.model['tag-embed'].init_from_array(
-            np.random.uniform(-0.01, 0.01, self.model['tag-embed'].shape()),
-        )
-
-
-        shape = self.model['struct-hidden-W'].shape()
-        r = np.sqrt(6./(shape[0] + shape[1]))
-        self.model['struct-hidden-W'].load_array(
-            np.random.uniform(-r, r, shape),
-        )
-        self.model['struct-hidden-b'].load_array(
-            np.zeros(self.model['struct-hidden-b'].shape()),
-        )
-
-        self.model['struct-out-W'].load_array(
-            np.zeros(self.model['struct-out-W'].shape()),
-        )
-        self.model['struct-out-b'].load_array(
-            np.zeros(self.model['struct-out-b'].shape()),
-        )
-
-
-        shape = self.model['label-hidden-W'].shape()
-        r = np.sqrt(6./(shape[0] + shape[1]))
-        self.model['label-hidden-W'].load_array(
-            np.random.uniform(-r, r, shape),
-        )
-        self.model['label-hidden-b'].load_array(
-            np.zeros(self.model['label-hidden-b'].shape()),
-        )
-
-        self.model['label-out-W'].load_array(
-            np.zeros(self.model['label-out-W'].shape()),
-        )
-        self.model['label-out-b'].load_array(
-            np.zeros(self.model['label-out-b'].shape()),
+        self.tag_embed.init_from_array(
+            np.random.uniform(-0.01, 0.01, self.tag_embed.shape()),
         )
 
 
     def prep_params(self):
 
-        self.W1_struct = pycnn.parameter(self.model['struct-hidden-W'])
-        self.b1_struct = pycnn.parameter(self.model['struct-hidden-b'])
+        self.W1_struct = dynet.parameter(self.struct_hidden_W)
+        self.b1_struct = dynet.parameter(self.struct_hidden_b)
 
-        self.W2_struct = pycnn.parameter(self.model['struct-out-W'])
-        self.b2_struct = pycnn.parameter(self.model['struct-out-b'])        
+        self.W2_struct = dynet.parameter(self.struct_output_W)
+        self.b2_struct = dynet.parameter(self.struct_output_b)        
 
-        self.W1_label = pycnn.parameter(self.model['label-hidden-W'])
-        self.b1_label = pycnn.parameter(self.model['label-hidden-b'])
+        self.W1_label = dynet.parameter(self.label_hidden_W)
+        self.b1_label = dynet.parameter(self.label_hidden_b)
 
-        self.W2_label = pycnn.parameter(self.model['label-out-W'])
-        self.b2_label = pycnn.parameter(self.model['label-out-b'])    
+        self.W2_label = dynet.parameter(self.label_output_W)
+        self.b2_label = dynet.parameter(self.label_output_b)    
 
 
     def evaluate_recurrent(self, word_inds, tag_inds, test=False):
@@ -285,9 +244,9 @@ class Network(object):
         sentence = []
 
         for (w, t) in zip(word_inds, tag_inds):
-            wordvec = pycnn.lookup(self.model['word-embed'], w)
-            tagvec = pycnn.lookup(self.model['tag-embed'], t)
-            vec = pycnn.concatenate([wordvec, tagvec])
+            wordvec = dynet.lookup(self.word_embed, w)
+            tagvec = dynet.lookup(self.tag_embed, t)
+            vec = dynet.concatenate([wordvec, tagvec])
             sentence.append(vec)
 
         fwd1_out = []
@@ -304,12 +263,12 @@ class Network(object):
 
         lstm2_input = []
         for (f, b) in zip(fwd1_out, reversed(back1_out)):
-            lstm2_input.append(pycnn.concatenate([f, b]))
+            lstm2_input.append(dynet.concatenate([f, b]))
 
         fwd2_out = []
         for vec in lstm2_input:
             if self.droprate > 0 and not test:
-                vec = pycnn.dropout(vec, self.droprate)
+                vec = dynet.dropout(vec, self.droprate)
             fwd2 = fwd2.add_input(vec)
             fwd_vec = fwd2.output()
             fwd2_out.append(fwd_vec)
@@ -317,13 +276,13 @@ class Network(object):
         back2_out = []
         for vec in reversed(lstm2_input):
             if self.droprate > 0 and not test:
-                vec = pycnn.dropout(vec, self.droprate)
+                vec = dynet.dropout(vec, self.droprate)
             back2 = back2.add_input(vec)
             back_vec = back2.output()
             back2_out.append(back_vec)
 
-        fwd_out = [pycnn.concatenate([f1, f2]) for (f1, f2) in zip(fwd1_out, fwd2_out)]
-        back_out = [pycnn.concatenate([b1, b2]) for (b1, b2) in zip(back1_out, back2_out)]
+        fwd_out = [dynet.concatenate([f1, f2]) for (f1, f2) in zip(fwd1_out, fwd2_out)]
+        back_out = [dynet.concatenate([b1, b2]) for (b1, b2) in zip(back1_out, back2_out)]
 
         return fwd_out, back_out[::-1]
 
@@ -333,17 +292,17 @@ class Network(object):
         fwd_span_out = []
         for left_index, right_index in zip(lefts, rights):
             fwd_span_out.append(fwd_out[right_index] - fwd_out[left_index - 1])
-        fwd_span_vec = pycnn.concatenate(fwd_span_out)
+        fwd_span_vec = dynet.concatenate(fwd_span_out)
 
         back_span_out = []
         for left_index, right_index in zip(lefts, rights):
             back_span_out.append(back_out[left_index] - back_out[right_index + 1])
-        back_span_vec = pycnn.concatenate(back_span_out)
+        back_span_vec = dynet.concatenate(back_span_out)
 
-        hidden_input = pycnn.concatenate([fwd_span_vec, back_span_vec])
+        hidden_input = dynet.concatenate([fwd_span_vec, back_span_vec])
 
         if self.droprate > 0 and not test:
-            hidden_input = pycnn.dropout(hidden_input, self.droprate)
+            hidden_input = dynet.dropout(hidden_input, self.droprate)
 
         hidden_output = self.activation(self.W1_struct * hidden_input + self.b1_struct)
 
@@ -358,17 +317,17 @@ class Network(object):
         fwd_span_out = []
         for left_index, right_index in zip(lefts, rights):
             fwd_span_out.append(fwd_out[right_index] - fwd_out[left_index - 1])
-        fwd_span_vec = pycnn.concatenate(fwd_span_out)
+        fwd_span_vec = dynet.concatenate(fwd_span_out)
 
         back_span_out = []
         for left_index, right_index in zip(lefts, rights):
             back_span_out.append(back_out[left_index] - back_out[right_index + 1])
-        back_span_vec = pycnn.concatenate(back_span_out)
+        back_span_vec = dynet.concatenate(back_span_out)
 
-        hidden_input = pycnn.concatenate([fwd_span_vec, back_span_vec])
+        hidden_input = dynet.concatenate([fwd_span_vec, back_span_vec])
 
         if self.droprate > 0 and not test:
-            hidden_input = pycnn.dropout(hidden_input, self.droprate)
+            hidden_input = dynet.dropout(hidden_input, self.droprate)
 
         hidden_output = self.activation(self.W1_label * hidden_input + self.b1_label)
 
@@ -379,7 +338,7 @@ class Network(object):
 
     def save(self, filename):
         """
-        Appends architecture hyperparameters to end of PyCNN model file.
+        Appends architecture hyperparameters to end of dynet model file.
         """
         self.model.save(filename)
 
@@ -517,7 +476,7 @@ class Network(object):
 
                 batch = [example for (example, _) in explore]
 
-                pycnn.renew_cg()
+                dynet.renew_cg()
                 network.prep_params()
 
                 errors = []
@@ -543,20 +502,20 @@ class Network(object):
                     for (left, right), correct in example['struct_data'].items():
                         scores = network.evaluate_struct(fwd, back, left, right)
 
-                        probs = pycnn.softmax(scores)
-                        loss = -pycnn.log(pycnn.pick(probs, correct))
+                        probs = dynet.softmax(scores)
+                        loss = -dynet.log(dynet.pick(probs, correct))
                         errors.append(loss)
                     total_states += len(example['struct_data'])
 
                     for (left, right), correct in example['label_data'].items():
                         scores = network.evaluate_label(fwd, back, left, right)
 
-                        probs = pycnn.softmax(scores)
-                        loss = -pycnn.log(pycnn.pick(probs, correct))
+                        probs = dynet.softmax(scores)
+                        loss = -dynet.log(dynet.pick(probs, correct))
                         errors.append(loss)
                     total_states += len(example['label_data'])
 
-                batch_error = pycnn.esum(errors)
+                batch_error = dynet.esum(errors)
                 total_cost += batch_error.scalar_value()
                 batch_error.backward()
                 network.trainer.update()

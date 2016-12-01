@@ -11,7 +11,26 @@ import argparse
 
 
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser(prog='Span-Based Constituency Parser')
+    parser.add_argument(
+        '--dynet-mem',
+        dest='dynet_mem',
+        help='Memory allocation for Dynet. (DEFAULT=2000)',
+        default=2000,
+    )
+    parser.add_argument(
+        '--dynet-l2',
+        dest='dynet_l2',
+        help='L2 regularization parameter. (DEFAULT=0)',
+        default=0,
+    )
+    parser.add_argument(
+        '--dynet-seed',
+        dest='dynet_seed',
+        help='Seed for PNG. (DEFAULT=0 : generate)',
+        default=0,
+    )
     parser.add_argument(
         '--model',
         dest='model',
@@ -118,11 +137,17 @@ if __name__ == '__main__':
         default=0,
         help='Probability of using oracle action in exploration. (DEFAULT=0)',
     )
-    parser.add_argument('--cnn-seed', type=int, dest='cnn_seed')
     parser.add_argument('--np-seed', type=int, dest='np_seed')
 
     args = parser.parse_args()
 
+    # Overriding DyNet defaults
+    sys.argv.insert(1, str(args.dynet_mem))
+    sys.argv.insert(1, '--dynet-mem')
+    sys.argv.insert(1, str(args.dynet_l2))
+    sys.argv.insert(1, '--dynet-l2')
+    sys.argv.insert(1, str(args.dynet_seed))
+    sys.argv.insert(1, '--dynet-seed')
 
     if args.vocab is not None:
         from features import FeatureMapper
@@ -161,8 +186,8 @@ if __name__ == '__main__':
         if args.np_seed is not None:
             import numpy as np
             np.random.seed(args.np_seed)
-        if args.cnn_seed is not None:
-            import pycnn
+
+        print('L2 regularization: {}'.format(args.dynet_l2))
 
         Network.train(
             feature_mapper=fm,
