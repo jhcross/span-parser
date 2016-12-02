@@ -6,7 +6,8 @@ This is an implementation of the span-based natural language constituency parser
 
  * Python 2.7
  * NumPy
- * [DyNet](http://dynet.readthedocs.io/en/latest/python.html)
+ * [DyNet](http://dynet.readthedocs.io/en/latest/python.html) (To ensure compatibility, check out and compile commit 71fc893eda8e3f3fccc77b9a4ae942dce77ba368)
+
 
 
 

@@ -104,8 +104,8 @@ class LSTM(object):
             g = dynet.tanh(self.W_c * x + self.b_c)
             o = dynet.logistic(self.W_o * x + self.b_o)
 
-            c = dynet.cwise_multiply(f, self.c) + dynet.cwise_multiply(i, g)
-            h = dynet.cwise_multiply(o, dynet.tanh(c))
+            c = dynet.cmult(f, self.c) + dynet.cmult(i, g)
+            h = dynet.cmult(o, dynet.tanh(c))
 
             self.c = c
             self.h = h
